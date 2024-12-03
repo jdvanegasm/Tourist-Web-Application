@@ -30,7 +30,7 @@ class City(models.Model):
         return f"{self.name}, {self.country.name}"
     
 # posts model
-class Post(models.Models):
+class Post(models.Model):
     post_id = models.AutoField(primary_key = True)
     title = models.CharField(max_length = 255)
     description = models.TextField()
@@ -42,7 +42,7 @@ class Post(models.Models):
         return self.title
     
 # images model
-class Image(models.Models):
+class Image(models.Model):
     image_id = models.AutoField(primary_key = True)
     url = models.TextField()
     post = models.ForeignKey(Post, on_delete = models.CASCADE)
@@ -59,18 +59,20 @@ class Tag(models.Model):
         return self.name
     
 # PostTag model
-class PostTag(models.Models):
+class PostTag(models.Model):
     post = models.ForeignKey(Post, on_delete = models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete = models.CASCADE)
 
     class Meta:
-        unique_together = ['post', 'tag']
+        constraints = [
+            models.UniqueConstraint(fields = ['post', 'tag'], name = 'unique_post_tag')
+        ]
 
     def __str__(self):
         return f"{self.post.title} - {self.tag.name}"
 
 #comments model
-class Comment(models.Models):
+class Comment(models.Model):
     comment_id = models.AutoField(primary_key = True)
     content = models.TextField()
     comment_date = models.DateTimeField(auto_now_add = True)
