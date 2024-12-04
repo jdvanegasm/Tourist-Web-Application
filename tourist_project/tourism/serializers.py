@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = User(**validated_data)
-        user.set_password(password)  # Establece el hash de la contraseña
+        user.set_password(password)
         user.save()
         return user
 
@@ -38,19 +38,15 @@ class PostSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
         images = validated_data.pop('images', [])
-        city_data = validated_data.pop('city', None)  # Recibimos la ciudad como un diccionario
+        city_data = validated_data.pop('city', None)
         
-        # Obtener la ciudad
-        city = City.objects.get(name=city_data['name'])  # Buscamos la ciudad por su nombre
+        city = City.objects.get(name=city_data['name'])
         
-        # Crear el post
         post = Post.objects.create(city=city, **validated_data)
 
-        # Relacionar etiquetas al post
         for tag in tags:
             post.tags.add(tag)
         
-        # Crear imágenes
         for image_url in images:
             Image.objects.create(post=post, url=image_url)
         

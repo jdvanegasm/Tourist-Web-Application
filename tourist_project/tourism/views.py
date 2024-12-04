@@ -20,6 +20,29 @@ class UserListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+class LoginView(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+
+            return Response({
+                'access': access_token,
+                'refresh': refresh_token,
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class RegisterUserView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # Countries
 class CountryListCreateView(generics.ListCreateAPIView):
     queryset = Country.objects.all()
@@ -38,26 +61,7 @@ class PostListCreateView(generics.ListCreateAPIView):
 class PostDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    lookup_field = 'post_id'  # Aquí buscas el post por su `post_id`
-
-# Images
-class ImageListCreateView(generics.ListCreateAPIView):
-    queryset = Image.objects.all()
-    serializer_class = ImageSerializer
-
-# Tags
-class TagListCreateView(generics.ListCreateAPIView):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-
-# Comments
-class CommentListCreateView(generics.ListCreateAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-
-class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+    lookup_field = 'post_id'
 
 class PostByTagListView(ListAPIView):
     serializer_class = PostSerializer
@@ -70,7 +74,7 @@ class PostByTagListView(ListAPIView):
             raise NotFound(detail="Tag not found", code=status.HTTP_404_NOT_FOUND)
         
         return Post.objects.filter(posttag__tag=tag).distinct().prefetch_related('posttag__tag')
-
+    
 class PostByCountryListView(ListAPIView):
     serializer_class = PostSerializer
 
@@ -101,82 +105,69 @@ class CreatePostView(APIView):
     def post(self, request, *args, **kwargs):
         title = request.data.get('title')
         description = request.data.get('description')
-        city_name = request.data.get('city')  # Se espera un nombre de ciudad
+        city_name = request.data.get('city')
         image_urls = request.data.get('images', [])
         tags = request.data.get('tags', [])
 
-        # Validación de existencia de la ciudad
         try:
             city = City.objects.get(name=city_name)
         except City.DoesNotExist:
             return Response({'error': 'City not found'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validación de duplicación de título + ciudad
         if Post.objects.filter(title=title, city=city).exists():
             return Response({'error': 'A post with the same title already exists for this city.'}, 
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Datos del nuevo post
         post_data = {
             'title': title,
             'description': description,
-            'city': city,  # Enviar el objeto city
+            'city': city,
             'user': request.user
         }
 
-        # Crear el post
         serializer = PostSerializer(data=post_data)
         if serializer.is_valid():
             post = serializer.save()
 
-            # Crear imágenes
             if image_urls:
                 for image_url in image_urls:
                     if not isinstance(image_url, str) or len(image_url) > 255:
                         return Response({'error': 'Invalid image URL'}, status=status.HTTP_400_BAD_REQUEST)
-                    # Crear la imagen y asociarla al post
+
                     Image.objects.create(url=image_url, post=post)
 
-            # Asociar etiquetas predefinidas
             if tags:
                 for tag_name in tags:
                     if not isinstance(tag_name, str) or len(tag_name) > 50:
                         return Response({'error': 'Invalid tag name'}, status=status.HTTP_400_BAD_REQUEST)
                     try:
-                        # Obtener la etiqueta por nombre
                         tag = Tag.objects.get(name=tag_name)
-                        # Crear la relación ManyToMany a través de PostTag
                         PostTag.objects.create(post=post, tag=tag)
                     except Tag.DoesNotExist:
                         return Response({'error': f'Tag "{tag_name}" does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Retornar los datos del post creado con las imágenes
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class LoginView(APIView):
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
 
-            return Response({
-                'access': access_token,
-                'refresh': refresh_token,
-            })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class RegisterUserView(APIView):
-    def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# Images
+class ImageListCreateView(generics.ListCreateAPIView):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+
+# Tags
+class TagListCreateView(generics.ListCreateAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+# Comments
+class CommentListCreateView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
     
 class CreateCommentView(APIView):
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden comentar

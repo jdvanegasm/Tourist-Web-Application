@@ -1,7 +1,6 @@
 from django.db import models
 import uuid
 
-# users model
 class User(models.Model):
     user_id = models.UUIDField(primary_key = True, default = uuid.uuid4, editable=False)
     name = models.CharField(max_length = 100)
@@ -12,7 +11,6 @@ class User(models.Model):
     def __str__(self):
         return self.name
 
-# countries model
 class Country(models.Model):
     country_id = models.AutoField(primary_key = True)
     name = models.CharField(max_length = 100)
@@ -20,7 +18,6 @@ class Country(models.Model):
     def __str__(self):
         return self.name
     
-# cities model
 class City(models.Model):
     cities_id = models.AutoField(primary_key = True)
     name = models.CharField(max_length = 100)
@@ -29,7 +26,6 @@ class City(models.Model):
     def __str__(self):
         return f"{self.name}, {self.country.name}"
     
-# posts model
 class Post(models.Model):
     post_id = models.AutoField(primary_key = True)
     title = models.CharField(max_length = 255)
@@ -41,7 +37,6 @@ class Post(models.Model):
     def __str__(self):
         return self.title
     
-# images model
 class Image(models.Model):
     image_id = models.AutoField(primary_key = True)
     url = models.TextField()
@@ -50,7 +45,6 @@ class Image(models.Model):
     def __str__(self):
         return f"Image {self.image_id} for post {self.post.title}"
 
-# tags model
 class Tag(models.Model):
     tag_id = models.AutoField(primary_key = True)
     name = models.CharField(max_length = 50)
@@ -58,7 +52,6 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
     
-# PostTag model
 class PostTag(models.Model):
     post = models.ForeignKey(Post, on_delete = models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete = models.CASCADE)
@@ -71,7 +64,6 @@ class PostTag(models.Model):
     def __str__(self):
         return f"{self.post.title} - {self.tag.name}"
 
-#comments model
 class Comment(models.Model):
     comment_id = models.AutoField(primary_key = True)
     content = models.TextField()

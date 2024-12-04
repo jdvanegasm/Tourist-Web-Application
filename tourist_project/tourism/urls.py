@@ -25,5 +25,4 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', RegisterUserView.as_view(), name='register-user'),
     path('search-suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
-
 ]

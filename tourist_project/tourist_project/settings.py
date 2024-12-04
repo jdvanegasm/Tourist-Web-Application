@@ -35,11 +35,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',  # Aquí activamos la autenticación JWT
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
