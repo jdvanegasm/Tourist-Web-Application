@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from .models import User, Country, City, Post, Image, Tag, Comment, PostTag
 from .serializers import (
     UserSerializer, CountrySerializer, CitySerializer,
@@ -34,9 +35,10 @@ class PostListCreateView(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
+class PostDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    lookup_field = 'post_id'  # Aquí buscas el post por su `post_id`
 
 # Images
 class ImageListCreateView(generics.ListCreateAPIView):
@@ -99,47 +101,58 @@ class CreatePostView(APIView):
     def post(self, request, *args, **kwargs):
         title = request.data.get('title')
         description = request.data.get('description')
-        city_name = request.data.get('city')
+        city_name = request.data.get('city')  # Se espera un nombre de ciudad
         image_urls = request.data.get('images', [])
         tags = request.data.get('tags', [])
 
-        if Post.objects.filter(title=title).exists():
-            raise ValidationError({'title': 'A post with this title already exists.'})
-
+        # Validación de existencia de la ciudad
         try:
             city = City.objects.get(name=city_name)
         except City.DoesNotExist:
             return Response({'error': 'City not found'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Validación de duplicación de título + ciudad
+        if Post.objects.filter(title=title, city=city).exists():
+            return Response({'error': 'A post with the same title already exists for this city.'}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Datos del nuevo post
         post_data = {
             'title': title,
             'description': description,
-            'city': city,
+            'city': city,  # Enviar el objeto city
             'user': request.user
         }
 
+        # Crear el post
         serializer = PostSerializer(data=post_data)
         if serializer.is_valid():
             post = serializer.save()
 
+            # Crear imágenes
             if image_urls:
                 for image_url in image_urls:
                     if not isinstance(image_url, str) or len(image_url) > 255:
                         return Response({'error': 'Invalid image URL'}, status=status.HTTP_400_BAD_REQUEST)
+                    # Crear la imagen y asociarla al post
                     Image.objects.create(url=image_url, post=post)
 
+            # Asociar etiquetas predefinidas
             if tags:
                 for tag_name in tags:
                     if not isinstance(tag_name, str) or len(tag_name) > 50:
                         return Response({'error': 'Invalid tag name'}, status=status.HTTP_400_BAD_REQUEST)
                     try:
+                        # Obtener la etiqueta por nombre
                         tag = Tag.objects.get(name=tag_name)
-                        post.tags.add(tag)
+                        # Crear la relación ManyToMany a través de PostTag
+                        PostTag.objects.create(post=post, tag=tag)
                     except Tag.DoesNotExist:
                         return Response({'error': f'Tag "{tag_name}" does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Retornar los datos del post creado con las imágenes
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LoginView(APIView):
@@ -148,13 +161,69 @@ class LoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data
             refresh = RefreshToken.for_user(user)
-            # Generar los tokens
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
 
-            # Devolver los tokens
             return Response({
                 'access': access_token,
                 'refresh': refresh_token,
             })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class RegisterUserView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class CreateCommentView(APIView):
+    permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden comentar
+
+    def post(self, request, *args, **kwargs):
+        post_id = request.data.get('post_id')
+        content = request.data.get('content')
+
+        # Validación de existencia del post
+        try:
+            post = Post.objects.get(post_id=post_id)
+        except Post.DoesNotExist:
+            return Response({'error': 'Post not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Crear el comentario
+        comment_data = {
+            'content': content,
+            'post': post,
+            'user': request.user  # Asignar el usuario autenticado como autor del comentario
+        }
+
+        serializer = CommentSerializer(data=comment_data)
+        if serializer.is_valid():
+            comment = serializer.save()
+
+            return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class SearchSuggestionsView(APIView):
+    def get(self, request, *args, **kwargs):
+        query = request.query_params.get('q', '')
+        if query:
+            # Buscar países
+            countries = Country.objects.filter(name__icontains=query)
+            cities = City.objects.filter(name__icontains=query)
+            tags = Tag.objects.filter(name__icontains=query)
+
+            # Transformar en un formato de respuesta adecuado
+            country_names = [country.name for country in countries]
+            city_names = [city.name for city in cities]
+            tag_names = [tag.name for tag in tags]
+
+            return Response({
+                'countries': country_names,
+                'cities': city_names,
+                'tags': tag_names
+            })
+
+        return Response({'error': 'No query parameter provided'}, status=status.HTTP_400_BAD_REQUEST)

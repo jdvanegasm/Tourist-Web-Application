@@ -3,35 +3,50 @@ from .models import User, Country, City, Post, Image, Tag, Comment, PostTag
 from django.contrib.auth import authenticate
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['user_id', 'name', 'email', 'password', 'registration_date']
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)  # Establece el hash de la contraseña
+        user.save()
+        return user
 
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = '__all__'
+        fields = ['country_id', 'name']
 
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
-        fields = '__all__'
+        fields = ['city_id', 'name', 'country']  
 
 class PostSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
-
+    city = CitySerializer(read_only = True)
+    user = UserSerializer(read_only = True)
+    
     class Meta:
         model = Post
-        fields = ['title', 'description', 'city_id', 'user_id', 'tags', 'images']
+        fields = ['post_id', 'title', 'description', 'creation_date', 'images', 'city', 'user']
 
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
         images = validated_data.pop('images', [])
+        city_data = validated_data.pop('city', None)  # Recibimos la ciudad como un diccionario
+        
+        # Obtener la ciudad
+        city = City.objects.get(name=city_data['name'])  # Buscamos la ciudad por su nombre
         
         # Crear el post
-        post = Post.objects.create(**validated_data)
+        post = Post.objects.create(city=city, **validated_data)
 
-        # Relacionar etiquetas existentes al post
+        # Relacionar etiquetas al post
         for tag in tags:
             post.tags.add(tag)
         
@@ -44,7 +59,7 @@ class PostSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = '__all__'
+        fields = ['image_id', 'url']
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
