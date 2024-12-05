@@ -8,6 +8,7 @@ from random import choice
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from django.db import models
 from .models import User, Country, City, Post, Image, Tag, Comment, PostTag
 from .serializers import (
     UserSerializer, CountrySerializer, CitySerializer,
@@ -243,3 +244,36 @@ class SearchSuggestionsView(APIView):
             })
 
         return Response({'error': 'No se proporcionó ningún parámetro de consulta'}, status=status.HTTP_400_BAD_REQUEST)
+
+class SearchPrioritizedView(APIView):
+    def get(self, request, *args, **kwargs):
+        query = request.query_params.get('q', '').strip()
+        if not query:
+            return Response({'error': 'No query provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Búsqueda exacta en títulos
+        exact_title_matches = Post.objects.filter(title__iexact=query)
+
+        # Búsqueda parcial en títulos
+        partial_title_matches = Post.objects.filter(title__icontains=query).exclude(post_id__in=exact_title_matches.values_list('post_id', flat=True))
+
+        # Búsqueda en ciudades y países
+        city_country_matches = Post.objects.filter(
+            models.Q(city__name__icontains=query) | models.Q(city__country__name__icontains=query)
+        ).exclude(post_id__in=exact_title_matches.values_list('post_id', flat=True)).exclude(
+            post_id__in=partial_title_matches.values_list('post_id', flat=True)
+        )
+
+        # Búsqueda por tags
+        tag_matches = Post.objects.filter(
+            posttag__tag__name__icontains=query
+        ).exclude(post_id__in=exact_title_matches.values_list('post_id', flat=True)).exclude(
+            post_id__in=partial_title_matches.values_list('post_id', flat=True)
+        ).exclude(post_id__in=city_country_matches.values_list('post_id', flat=True))
+
+        # Concatenar resultados en orden de prioridad
+        prioritized_posts = list(exact_title_matches) + list(partial_title_matches) + list(city_country_matches) + list(tag_matches)
+
+        # Serializar resultados
+        serializer = PostSerializer(prioritized_posts, many=True)
+        return Response({'posts': serializer.data}, status=status.HTTP_200_OK)

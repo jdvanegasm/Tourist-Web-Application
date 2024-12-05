@@ -5,7 +5,7 @@ from .views import (
     PostListCreateView, PostDetailView, ImageListCreateView, 
     TagListCreateView, CommentListCreateView, CommentDetailView, PostByTagListView,
     PostByCountryListView, PostByCityListView, CreatePostView, RegisterView, SearchSuggestionsView,
-    LoginView, RandomPostView, CreateCommentView
+    LoginView, RandomPostView, CreateCommentView, SearchPrioritizedView
 )
 
 urlpatterns = [
@@ -29,4 +29,6 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login-user'),
     path('search-suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
     path('random-post/', RandomPostView.as_view(), name='random-post'),
+    path('search-prioritized', SearchPrioritizedView.as_view(), name='search-prioritized'),
+
 ]

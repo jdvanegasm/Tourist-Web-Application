@@ -9,7 +9,7 @@
           viewBox="0 0 20 20"
           fill="currentColor"
         >
-          <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM6.83 10H4a6 6 0 1111.88 0h-2.83a4.002 4.002 0 00-6.22 0zM10 14a3 3 0 01-2.83-2h5.66A3 3 0 0110 14z" />
+          <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM6.83 10H4a6 6 0 1111.88 0h-2.83a4.002 4.002 0 00-6.22 0zM10 14a3 3 0 01-2.83-2h5.66A3 3 3 0 0110 14z" />
         </svg>
         <h1 class="text-3xl font-extrabold text-highlight tracking-wide">
           Happy Fly <span class="text-highlight-light">Tours</span>
@@ -18,23 +18,7 @@
 
       <!-- Barra de búsqueda -->
       <div class="hidden md:flex items-center relative w-1/3">
-        <input
-          type="text"
-          placeholder="Buscar destinos, países, o ciudades..."
-          class="w-full bg-light rounded-full px-4 py-2 text-darkblue focus:outline-none focus:ring-2 focus:ring-highlight"
-        />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5 absolute right-3 text-highlight cursor-pointer"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M12.9 14.32a8 8 0 111.414-1.414l4.243 4.243-1.414 1.414-4.243-4.243zm-5.4 0a6 6 0 100-12 6 6 0 000 12z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <SearchBar />
       </div>
 
       <!-- Botones de acción -->
@@ -107,8 +91,12 @@
 
 <script>
 import { useToast } from "vue-toastification";
+import SearchBar from "../components/SearchBar.vue"; // Importar el componente SearchBar
 
 export default {
+  components: {
+    SearchBar,
+  },
   data() {
     return {
       menuOpen: false,

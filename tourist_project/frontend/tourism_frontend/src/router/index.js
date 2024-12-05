@@ -4,6 +4,7 @@ import RegisterPage from '../pages/RegisterPage.vue';
 import LoginPage from '../pages/LoginPage.vue';
 import PostPage from '../pages/PostPage.vue';
 import CreatePostPage from '../pages/CreatePostPage.vue';
+import SearchResultsPage from '../pages/SearchResultsPage.vue';
 
 const routes = [
   {
@@ -31,7 +32,12 @@ const routes = [
     path: '/create-post',
     name: 'CreatePost',
     component: CreatePostPage,
-  }
+  },
+  {
+    path: '/search',
+    name: "SearchResults",
+    component: SearchResultsPage,
+  },
 ];
 
 const router = createRouter({
