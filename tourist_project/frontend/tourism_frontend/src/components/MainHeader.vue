@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-darkblue text-light p-4 shadow-md sticky top-0 z-50">
+  <header class="bg-darkblue text-light py-6 shadow-md border-b border-highlight relative z-50">
     <div class="container mx-auto flex items-center justify-between">
       <!-- Logo de la empresa -->
       <router-link to="/" class="flex items-center space-x-2 no-underline hover:no-underline">
@@ -63,15 +63,15 @@
             class="flex items-center bg-secondary hover:bg-secondary-light text-light px-4 py-2 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-highlight transition"
             @click="toggleMenu"
           >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="24" height="24" fill="none">
-            <circle cx="50" cy="50" r="48" stroke="#124559" stroke-width="4" fill="#EFF6E0" />
-            <circle cx="50" cy="35" r="15" fill="#124559" />
-            <path d="M35 60 Q50 75 65 60 Q65 50 35 50 Z" fill="#124559" />
-          </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="24" height="24" fill="none">
+              <circle cx="50" cy="50" r="48" stroke="#124559" stroke-width="4" fill="#EFF6E0" />
+              <circle cx="50" cy="35" r="15" fill="#124559" />
+              <path d="M35 60 Q50 75 65 60 Q65 50 35 50 Z" fill="#124559" />
+            </svg>
           </button>
           <div
             v-if="menuOpen"
-            class="absolute right-0 mt-2 w-48 bg-light text-darkblue rounded-lg shadow-lg py-2"
+            class="absolute right-0 mt-2 w-48 bg-light text-darkblue rounded-lg shadow-lg py-2 z-50"
           >
             <a
               href="#"
@@ -89,6 +89,7 @@
             >
               Registrarse
             </a>
+
             <a
               href="#"
               class="block px-4 py-2 hover:bg-highlight-light rounded transition"
@@ -156,5 +157,8 @@ export default {
 }
 .transition {
   transition: all 0.3s ease-in-out;
+}
+.z-50 {
+  z-index: 50;
 }
 </style>

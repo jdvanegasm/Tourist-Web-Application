@@ -7,13 +7,12 @@ class Command(BaseCommand):
     help = 'Puebla la base de datos con datos de ejemplo'
 
     def handle(self, *args, **kwargs):
-
         self.stdout.write("Creando usuarios...")
         user1 = User.objects.create(
             user_id=uuid.uuid4(),
             name="Juan Pérez",
             email="juan@example.com",
-            hashed_password=make_password("contraseña123")
+            hashed_password=make_password("contraseña123")  # Usamos hashed_password en lugar de password
         )
         user2 = User.objects.create(
             user_id=uuid.uuid4(),
@@ -49,12 +48,13 @@ class Command(BaseCommand):
             user=user2
         )
 
+        self.stdout.write("Creando etiquetas para los posts...")
         PostTag.objects.create(post=post1, tag=tag1)
         PostTag.objects.create(post=post1, tag=tag2)
         PostTag.objects.create(post=post2, tag=tag2)
         PostTag.objects.create(post=post2, tag=tag3)
 
-        self.stdout.write("Creando imágenes...")
+        self.stdout.write("Creando imágenes para los posts...")
         post1.image_set.create(url="https://2182029.fs1.hubspotusercontent-na1.net/hubfs/2182029/Centro%20de%20la%20ciudad%20-%20El%20centro%20de%20Bogot%C3%A1-Bogot%C3%A1%20de%20noche.jpg")
         post2.image_set.create(url="https://arc-anglerfish-arc2-prod-infobae.s3.amazonaws.com/public/EWRWZLV7FZEM7C24TIEPFBJCP4.jpg")
 

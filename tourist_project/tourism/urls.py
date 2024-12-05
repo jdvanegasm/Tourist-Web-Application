@@ -4,7 +4,7 @@ from .views import (
     UserListCreateView, CountryListCreateView, CityListCreateView,
     PostListCreateView, PostDetailView, ImageListCreateView, 
     TagListCreateView, CommentListCreateView, CommentDetailView, PostByTagListView,
-    PostByCountryListView, PostByCityListView, CreatePostView, RegisterUserView, SearchSuggestionsView
+    PostByCountryListView, PostByCityListView, CreatePostView, RegisterView, SearchSuggestionsView
 )
 
 urlpatterns = [
@@ -17,12 +17,12 @@ urlpatterns = [
     path('tags/', TagListCreateView.as_view(), name='tag-list-create'),
     path('comments/', CommentListCreateView.as_view(), name='comment-list-create'),
     path('comments/<int:pk>/', CommentDetailView.as_view(), name='comment-detail'),
-    path('api/posts/tags/<str:tag_name>/', PostByTagListView.as_view(), name = 'posts-by-tag'),
-    path('api/post/countries/<str:country_name>/', PostByCountryListView.as_view(), name = 'post-by-country'),
-    path('api/post/cities/<str:city_name>/', PostByCityListView.as_view(), name = 'post-by-city'),
-    path('api/posts/create/', CreatePostView.as_view(), name='create_post'),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('register/', RegisterUserView.as_view(), name='register-user'),
+    path('posts/tags/<str:tag_name>/', PostByTagListView.as_view(), name = 'posts-by-tag'),
+    path('post/countries/<str:country_name>/', PostByCountryListView.as_view(), name = 'post-by-country'),
+    path('post/cities/<str:city_name>/', PostByCityListView.as_view(), name = 'post-by-city'),
+    path('posts/create/', CreatePostView.as_view(), name='create_post'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('register/', RegisterView.as_view(), name='register-user'),
     path('search-suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
 ]

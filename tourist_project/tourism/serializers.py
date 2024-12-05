@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User, Country, City, Post, Image, Tag, Comment, PostTag
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import make_password
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -12,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = User(**validated_data)
-        user.set_password(password)
+        user.hashed_password = make_password(password)
         user.save()
         return user
 

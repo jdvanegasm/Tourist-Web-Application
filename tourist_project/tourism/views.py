@@ -35,12 +35,14 @@ class LoginView(APIView):
             })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class RegisterUserView(APIView):
+class RegisterView(APIView):
     def post(self, request):
+        print("Datos recibidos en la solicitud:", request.data)
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({"message": "Usuario registrado exitosamente."}, status=status.HTTP_201_CREATED)
+        print("Errores del serializer:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Countries
@@ -71,7 +73,7 @@ class PostByTagListView(ListAPIView):
         try:
             tag = Tag.objects.get(name=tag_name)
         except Tag.DoesNotExist:
-            raise NotFound(detail="Tag not found", code=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail="Etiqueta no encontrada", code=status.HTTP_404_NOT_FOUND)
         
         return Post.objects.filter(posttag__tag=tag).distinct().prefetch_related('posttag__tag')
     
@@ -83,7 +85,7 @@ class PostByCountryListView(ListAPIView):
         try:
             country = Country.objects.get(name=country_name)
         except Country.DoesNotExist:
-            raise NotFound(detail="Country not found", code=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail="Pais no encontrado", code=status.HTTP_404_NOT_FOUND)
         
         return Post.objects.filter(city__country=country).distinct().prefetch_related('city__country')
 
@@ -95,7 +97,7 @@ class PostByCityListView(ListAPIView):
         try:
             city = City.objects.get(name=city_name)
         except City.DoesNotExist:
-            raise NotFound(detail="City not found", code=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail="Ciudad no encontrada", code=status.HTTP_404_NOT_FOUND)
         
         return Post.objects.filter(city=city)
     
@@ -112,10 +114,10 @@ class CreatePostView(APIView):
         try:
             city = City.objects.get(name=city_name)
         except City.DoesNotExist:
-            return Response({'error': 'City not found'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Ciudad no encontrada'}, status=status.HTTP_400_BAD_REQUEST)
 
         if Post.objects.filter(title=title, city=city).exists():
-            return Response({'error': 'A post with the same title already exists for this city.'}, 
+            return Response({'error': 'Un post con el mismo titulo ya existe para esta ciudad'}, 
                             status=status.HTTP_400_BAD_REQUEST)
 
         post_data = {
@@ -132,19 +134,19 @@ class CreatePostView(APIView):
             if image_urls:
                 for image_url in image_urls:
                     if not isinstance(image_url, str) or len(image_url) > 255:
-                        return Response({'error': 'Invalid image URL'}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': 'URL de la imagen invalida'}, status=status.HTTP_400_BAD_REQUEST)
 
                     Image.objects.create(url=image_url, post=post)
 
             if tags:
                 for tag_name in tags:
                     if not isinstance(tag_name, str) or len(tag_name) > 50:
-                        return Response({'error': 'Invalid tag name'}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': 'Nombre de etiqueta invalido'}, status=status.HTTP_400_BAD_REQUEST)
                     try:
                         tag = Tag.objects.get(name=tag_name)
                         PostTag.objects.create(post=post, tag=tag)
                     except Tag.DoesNotExist:
-                        return Response({'error': f'Tag "{tag_name}" does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': f'La etiqueta "{tag_name}" no existe'}, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
 
@@ -180,13 +182,13 @@ class CreateCommentView(APIView):
         try:
             post = Post.objects.get(post_id=post_id)
         except Post.DoesNotExist:
-            return Response({'error': 'Post not found'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Post no encontrado'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Crear el comentario
         comment_data = {
             'content': content,
             'post': post,
-            'user': request.user  # Asignar el usuario autenticado como autor del comentario
+            'user': request.user
         }
 
         serializer = CommentSerializer(data=comment_data)
@@ -201,12 +203,10 @@ class SearchSuggestionsView(APIView):
     def get(self, request, *args, **kwargs):
         query = request.query_params.get('q', '')
         if query:
-            # Buscar países
             countries = Country.objects.filter(name__icontains=query)
             cities = City.objects.filter(name__icontains=query)
             tags = Tag.objects.filter(name__icontains=query)
 
-            # Transformar en un formato de respuesta adecuado
             country_names = [country.name for country in countries]
             city_names = [city.name for city in cities]
             tag_names = [tag.name for tag in tags]
@@ -217,4 +217,4 @@ class SearchSuggestionsView(APIView):
                 'tags': tag_names
             })
 
-        return Response({'error': 'No query parameter provided'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'No se proporcionó ningún parámetro de consulta'}, status=status.HTTP_400_BAD_REQUEST)
