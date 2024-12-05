@@ -75,6 +75,7 @@
 
 <script>
 import axios from "axios";
+import { useToast } from "vue-toastification"; // Importar toast
 
 export default {
   name: "LoginPage",
@@ -84,57 +85,43 @@ export default {
         email: "",
         password: "",
       },
-      errorMessage: "",
+      errorMessage: "", // Usado para mostrar errores en el template
     };
   },
   methods: {
     async handleLogin() {
-  try {
-    // Solicitud al backend
-    const response = await axios.post("http://localhost:8000/api/login/", {
-      email: this.form.email,
-      password: this.form.password,
-    });
+      const toast = useToast(); // Inicializar el toast
+      try {
+        // Enviamos la solicitud al backend
+        const response = await axios.post("http://localhost:8000/api/login/", {
+          email: this.form.email,
+          password: this.form.password,
+        });
 
-    // Verificar tokens en la respuesta
-    if (response?.data?.access && response?.data?.refresh) {
-      // Guardar tokens en localStorage
-      localStorage.setItem("accessToken", response.data.access);
-      localStorage.setItem("refreshToken", response.data.refresh);
+        // Si la respuesta tiene tokens, los guardamos
+        if (response.data.access && response.data.refresh) {
+          localStorage.setItem("accessToken", response.data.access);
+          localStorage.setItem("refreshToken", response.data.refresh);
 
-      // Mostrar éxito y redirigir
-      this.$toast.success("Inicio de sesión exitoso. Redirigiendo...");
-      setTimeout(() => {
-        this.$router.push("/");
-      }, 1000);
-    } else {
-      // Respuesta inesperada del backend
-      throw new Error("Respuesta inesperada del servidor.");
-    }
-  } catch (error) {
-    // Manejo ultra-seguro de errores
-    console.error("Error completo:", error);
+          // Mostrar mensaje de éxito con toast
+          toast.success("Inicio de sesión exitoso. Redirigiendo...", {
+            timeout: 3000,
+            position: "top-right",
+          });
 
-    // Definir mensaje de error de forma segura
-    let errorMessage = "Ocurrió un error inesperado.";
-    if (error.response) {
-      if (error.response.data) {
-        // Extraer mensaje de error del backend si existe
-        errorMessage = error.response.data.error || error.response.data.detail || error.response.statusText;
-      } else {
-        // Si no hay datos en la respuesta
-        errorMessage = error.response.statusText || "Error de comunicación con el servidor.";
+          // Redirigir después de un corto retraso
+          setTimeout(() => {
+            this.$router.push("/");
+          }, 1500);
+        } else {
+          // Mensaje genérico si no hay tokens
+          this.errorMessage = "No se pudo iniciar sesión. Intenta nuevamente.";
+        }
+      } catch (error) {
+        // Manejo de error básico
+        this.errorMessage = "Ocurrió un error. Revisa tus credenciales o la conexión al servidor.";
       }
-    } else if (error.message) {
-      // Error generado por Axios (como problemas de red)
-      errorMessage = error.message;
-    }
-
-    // Mostrar mensaje en la interfaz
-    this.errorMessage = errorMessage;
-    this.$toast.error(this.errorMessage);
-  }
-},
+    },
   },
 };
 </script>

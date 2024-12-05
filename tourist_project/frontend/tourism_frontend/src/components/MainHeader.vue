@@ -106,6 +106,8 @@
 </template>
 
 <script>
+import { useToast } from "vue-toastification";
+
 export default {
   data() {
     return {
@@ -113,21 +115,45 @@ export default {
       isAuthenticated: false,
     };
   },
+  mounted() {
+    this.checkAuthentication();
+  },
   methods: {
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
     },
     goToCreatePost() {
-      this.$router.push('/create-post');
+      const toast = useToast();
+      if (!this.isAuthenticated) {
+        toast.warning("Por favor inicia sesión para crear un post.", {
+          timeout: 3000,
+          position: "top-right",
+        });
+        this.$router.push("/login");
+      } else {
+        this.$router.push("/create-post");
+      }
     },
     goToLogin() {
-      this.$router.push('/login');
+      this.$router.push("/login");
     },
     goToRegister() {
-      this.$router.push('/register');
+      this.$router.push("/register");
     },
     logout() {
+      const toast = useToast();
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
       this.isAuthenticated = false;
+      toast.success("Sesión cerrada correctamente.", {
+        timeout: 3000,
+        position: "top-right",
+      });
+      this.$router.push("/");
+    },
+    checkAuthentication() {
+      const token = localStorage.getItem("accessToken");
+      this.isAuthenticated = !!token;
     },
   },
 };
