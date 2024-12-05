@@ -1,11 +1,16 @@
 <template>
   <div id="app">
-    <router-view></router-view> <!-- Renderiza las páginas en función de las rutas -->
+    <MainHeader />
+    <router-view />
   </div>
 </template>
 
 <script>
+import MainHeader from '@/components/MainHeader.vue';
+
 export default {
-  name: 'App',
+  components: {
+    MainHeader,
+  },
 };
 </script>
