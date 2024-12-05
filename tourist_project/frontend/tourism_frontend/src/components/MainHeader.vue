@@ -2,7 +2,7 @@
   <header class="bg-darkblue text-light p-4 shadow-md sticky top-0 z-50">
     <div class="container mx-auto flex items-center justify-between">
       <!-- Logo de la empresa -->
-      <div class="flex items-center space-x-2">
+      <router-link to="/" class="flex items-center space-x-2 no-underline hover:no-underline">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-8 w-8 text-highlight"
@@ -14,7 +14,7 @@
         <h1 class="text-3xl font-extrabold text-highlight tracking-wide">
           Happy Fly <span class="text-highlight-light">Tours</span>
         </h1>
-      </div>
+      </router-link>
 
       <!-- Barra de búsqueda -->
       <div class="hidden md:flex items-center relative w-1/3">
