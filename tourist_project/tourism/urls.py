@@ -5,7 +5,7 @@ from .views import (
     PostListCreateView, PostDetailView, ImageListCreateView, 
     TagListCreateView, CommentListCreateView, CommentDetailView, PostByTagListView,
     PostByCountryListView, PostByCityListView, CreatePostView, RegisterView, SearchSuggestionsView,
-    LoginView
+    LoginView, RandomPostView, CreateCommentView
 )
 
 urlpatterns = [
@@ -13,11 +13,12 @@ urlpatterns = [
     path('countries/', CountryListCreateView.as_view(), name='country-list-create'),
     path('cities/', CityListCreateView.as_view(), name='city-list-create'),
     path('posts/', PostListCreateView.as_view(), name='post-list-create'),
-    path('posts/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
+    path('posts/<int:post_id>/', PostDetailView.as_view(), name='post-detail'),
     path('images/', ImageListCreateView.as_view(), name='image-list-create'),
     path('tags/', TagListCreateView.as_view(), name='tag-list-create'),
     path('comments/', CommentListCreateView.as_view(), name='comment-list-create'),
     path('comments/<int:pk>/', CommentDetailView.as_view(), name='comment-detail'),
+    path('comments/create/', CreateCommentView.as_view(), name='create-comment'),
     path('posts/tags/<str:tag_name>/', PostByTagListView.as_view(), name = 'posts-by-tag'),
     path('post/countries/<str:country_name>/', PostByCountryListView.as_view(), name = 'post-by-country'),
     path('post/cities/<str:city_name>/', PostByCityListView.as_view(), name = 'post-by-city'),
@@ -27,4 +28,5 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register-user'),
     path('login/', LoginView.as_view(), name='login-user'),
     path('search-suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
+    path('random-post/', RandomPostView.as_view(), name='random-post'),
 ]

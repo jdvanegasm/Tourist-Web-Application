@@ -25,17 +25,27 @@ class CountrySerializer(serializers.ModelSerializer):
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
-        fields = ['city_id', 'name', 'country']  
+        fields = ['cities_id', 'name', 'country']  
 
 class PostSerializer(serializers.ModelSerializer):
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
-    city = CitySerializer(read_only = True)
-    user = UserSerializer(read_only = True)
+    tags = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
+    city = CitySerializer(read_only=True)
+    user = UserSerializer(read_only=True)
     
     class Meta:
         model = Post
-        fields = ['post_id', 'title', 'description', 'creation_date', 'images', 'city', 'user']
+        fields = [
+            'post_id', 'title', 'description', 'creation_date',
+            'tags', 'images', 'city', 'user'
+        ]
 
+    def get_tags(self, obj):
+        return [post_tag.tag.name for post_tag in obj.posttag_set.all()]
+
+    def get_images(self, obj):
+        return obj.image_set.values_list('url', flat=True)
+    
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
         images = validated_data.pop('images', [])
@@ -52,6 +62,8 @@ class PostSerializer(serializers.ModelSerializer):
             Image.objects.create(post=post, url=image_url)
         
         return post
+    
+    
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:

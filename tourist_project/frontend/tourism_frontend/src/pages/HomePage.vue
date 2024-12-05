@@ -9,7 +9,7 @@
         </p>
         <button
           class="bg-highlight hover:bg-highlight-light text-darkblue font-bold py-3 px-6 rounded-full shadow-md transition"
-          @click="$router.push('/create-post')"
+          @click="exploreRandomDestination"
         >
           Explora un destino Aleatorio
         </button>
@@ -112,8 +112,22 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
-  name: 'HomePage',
+  name: "HomePage",
+  methods: {
+    async exploreRandomDestination() {
+      try {
+        const response = await axios.get("http://localhost:8000/api/random-post/");
+        const postId = response.data.post_id; // Asegúrate de que el backend envíe `post_id`.
+        this.$router.push(`/post/${postId}`);
+      } catch (error) {
+        console.error("Error al obtener un destino aleatorio:", error);
+        alert("Hubo un problema al cargar un destino aleatorio. Inténtalo de nuevo.");
+      }
+    },
+  },
 };
 </script>
 

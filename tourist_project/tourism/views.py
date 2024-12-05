@@ -3,8 +3,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
 from rest_framework import status
+from random import choice
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
@@ -105,6 +105,16 @@ class PostByCityListView(ListAPIView):
         
         return Post.objects.filter(city=city)
     
+class RandomPostView(APIView):
+    def get(self, request, *args, **kwargs):
+        posts = Post.objects.all()
+        if not posts.exists():
+            raise NotFound(detail="No hay posts disponibles.", code=status.HTTP_404_NOT_FOUND)
+
+        random_post = choice(posts)
+        serializer = PostSerializer(random_post)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
 class CreatePostView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -167,9 +177,20 @@ class TagListCreateView(generics.ListCreateAPIView):
     serializer_class = TagSerializer
 
 # Comments
+# Comentarios
 class CommentListCreateView(generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        post_id = self.request.data.get('post_id')
+        try:
+            post = Post.objects.get(post_id=post_id)
+        except Post.DoesNotExist:
+            raise NotFound(detail="Post no encontrado", code=status.HTTP_404_NOT_FOUND)
+        
+        serializer.save(user=self.request.user, post=post)
 
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
