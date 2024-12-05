@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <template v-if="$route.name === 'Register'">
+    <template v-if="$route.name === 'Register' || $route.name === 'Login' ">
       <HeaderRegister />
     </template>
     <template v-else>

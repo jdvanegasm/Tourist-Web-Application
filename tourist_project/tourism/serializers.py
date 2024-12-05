@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import User, Country, City, Post, Image, Tag, Comment, PostTag
-from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import check_password
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -78,7 +78,16 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(email=data['email'], password=data['password'])
-        if user is None:
-            raise serializers.ValidationError("Invalid credentials")
+        email = data.get("email")
+        password = data.get("password")
+
+        try:
+            # Busca el usuario por correo electrónico
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Credenciales inválidas.")
+
+        # Verifica la contraseña
+        if not check_password(password, user.hashed_password):
+            raise serializers.ValidationError("Credenciales inválidas.")
         return user

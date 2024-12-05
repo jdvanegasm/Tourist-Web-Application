@@ -30,10 +30,14 @@ class LoginView(APIView):
             refresh_token = str(refresh)
 
             return Response({
-                'access': access_token,
-                'refresh': refresh_token,
-            })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                "access": access_token,
+                "refresh": refresh_token,
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "error": "Credenciales inválidas"
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     
 class RegisterView(APIView):
     def post(self, request):

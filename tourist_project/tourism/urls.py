@@ -4,7 +4,8 @@ from .views import (
     UserListCreateView, CountryListCreateView, CityListCreateView,
     PostListCreateView, PostDetailView, ImageListCreateView, 
     TagListCreateView, CommentListCreateView, CommentDetailView, PostByTagListView,
-    PostByCountryListView, PostByCityListView, CreatePostView, RegisterView, SearchSuggestionsView
+    PostByCountryListView, PostByCityListView, CreatePostView, RegisterView, SearchSuggestionsView,
+    LoginView
 )
 
 urlpatterns = [
@@ -24,5 +25,6 @@ urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', RegisterView.as_view(), name='register-user'),
+    path('login/', LoginView.as_view(), name='login-user'),
     path('search-suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
 ]
